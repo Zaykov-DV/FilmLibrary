@@ -130,7 +130,7 @@
         taskTitle: '',
         taskDescription: '',
         whatWatch: 'Film',
-        taskId: 3,
+    //    taskId: 3,
         // Total Time
         // Film
         filmHours: 1,
@@ -142,21 +142,7 @@
         // Tags
         tagTitle: '',
         tagMenuShow: false,
-        tagsUsed: [],
-        tags: [
-          {
-            title: 'Comedy‎',
-            use: false
-          },
-          {
-            title: 'Westerns',
-            use: false
-          },
-          {
-            title: 'Adventure',
-            use: false
-          }
-        ]
+        tagsUsed: []
       }
     },
     methods: {
@@ -164,13 +150,11 @@
         if (this.tagTitle === '') {
           return
         }
-        this.tags.push({
+        const tag = {
           title: this.tagTitle,
-          used: false
-        })
-        // const tag = {
-        //   title: this.tagTitle,
-        // }
+          use: false
+        }
+        this.$store.dispatch('newTag', tag)
       },
       newTask () {
         if (this.taskTitle === '') {
@@ -183,27 +167,33 @@
           time = this.serialTime
         }
         const task = {
-          id: this.taskId,
+          //id: this.taskId,
           title: this.taskTitle,
           description: this.taskDescription,
           whatWatch: this.whatWatch,
           time,
-          tagsUsed: this.tagsUsed,
+          tags: this.tagsUsed,
           completed: false,
           editing: false
         }
+        this.$store.dispatch('newTask', task)
         console.log(task)
         // Reset
-        this.taskId += 1
+       // this.taskId += 1
         this.taskTitle = ''
         this.taskDescription = ''
         this.tagsUsed = []
+
+        for (let i=0; i < this.tags.length; i++) {
+          this.tags[i].use = false
+        }
       },
       addTagUsed (tag) {
         tag.use = !tag.use
         if (tag.use) {
-          this.tagsUsed.push(
-            tag.title
+          this.tagsUsed.push({
+              title: tag.title
+          }
           )
         } else {
           this.tagsUsed.splice(tag.title, 1)
@@ -216,6 +206,9 @@
       }
     },
     computed: {
+      tags () {
+        return this.$store.getters.tags
+      },
       filmTime () {
         let min = (this.filmHours * 60) + (this.filmMinutes * 1)
         return this.getHoursAndMinutes(min)
