@@ -5,7 +5,6 @@
         .task-list__header
           h1.ui-title-1 Tasks
           .buttons-list
-            p {{ filter }}
             button.button--round.button-default(
               @click="filter = 'active'"
             ) Active
@@ -50,7 +49,7 @@
   export default {
     data () {
       return {
-        filter: 'active'
+        filter: 'active',
       }
     },
     computed: {
@@ -82,6 +81,7 @@
     margin-bottom 30px
     .button
       margin-right 8px
+
     .ui-title-1
       margin-bottom 0
   //
@@ -126,4 +126,5 @@
   .task-item__footer
     .ui-tag
       margin-right 16px
+
 </style>
