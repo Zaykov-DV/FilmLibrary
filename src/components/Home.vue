@@ -85,6 +85,7 @@
               p {{ serialTime }}
 
           // TAG LIST
+
           // Add New Tag Button
           .tag-list.tag-list--add
             .ui-tag__wrapper(
@@ -133,7 +134,9 @@
             button.button.button--round.button-primary(
               type="submit"
               :disabled="submitStatus === 'PENDING'"
-            ) Send
+            )
+              span(v-if="loading") Loading...
+              span(v-else) Send
 
 </template>
 
@@ -146,6 +149,7 @@
         taskTitle: '',
         taskDescription: '',
         whatWatch: 'Film',
+
         // Total Time
         // Film
         filmHours: 1,
@@ -154,12 +158,14 @@
         serialSeason: 1,
         serialSeries: 11,
         serialSeriesMinutes: 40,
+
         // Tags
         tagTitle: '',
         tagMenuShow: false,
         tagsUsed: []
       }
     },
+    // Vuelodate
     validations: {
       taskTitle: {
         required
@@ -168,6 +174,7 @@
     methods: {
       // Add New Tag
       newTag () {
+        // TODO: Vuelodate
         if (this.tagTitle === '') {
           return
         }
@@ -179,6 +186,7 @@
         // Reset
         this.tagTitle = ''
       },
+
       // Add Used Tag
       addTagUsed (tag) {
         tag.use = !tag.use
@@ -190,27 +198,25 @@
           this.tagsUsed.splice(tag.title, 1)
         }
       },
-      // Submit NEW TASK
+
+      // Submit NEW TASK (submit button)
       onSubmit () {
+        // Initialize Vuelodate
         this.$v.$touch()
+        // Invalid
         if (this.$v.$invalid) {
           console.log('ERROR')
           this.submitStatus = 'ERROR'
+          // Valid
         } else {
-          // Vaild
-          console.log('SEND')
-          this.submitStatus = 'PENDING'
-          // Firebase waiting
-          setTimeout(() => {
-            this.submitStatus = 'OK'
-          }, 500)
-          // Time
+          // Time (What Watch)
           let time
           if (this.whatWatch === 'Film') {
             time = this.filmTime
           } else {
             time = this.serialTime
           }
+
           // Task
           const task = {
             title: this.taskTitle,
@@ -222,21 +228,31 @@
             editing: false
           }
           this.$store.dispatch('newTask', task)
+            .then(() => {
+              this.submitStatus = 'OK'
+            })
+            .catch(err => {
+              this.submitStatus = err.message
+            })
+
           // Reset
           this.taskTitle = ''
           this.taskDescription = ''
           // Reset $v (validate)
           this.$v.$reset()
+
           // Reset for Tags
           this.tagMenuShow = false
           this.tagsUsed = []
           this.tagTitle = ''
+          // Reset tags.use + class used
           for (let i = 0; i < this.tags.length; i++) {
             this.tags[i].use = false
           }
         }
       },
-      // Total Time
+
+      // COMMON Total Time
       getHoursAndMinutes (minutes) {
         let hours = Math.trunc(minutes / 60)
         let min = minutes % 60
@@ -244,17 +260,25 @@
       }
     },
     computed: {
+      // Return all Tags
       tags () {
         return this.$store.getters.tags
       },
-      // Total Time
+
+      // FILM Total Time
       filmTime () {
         let min = (this.filmHours * 60) + (this.filmMinutes * 1)
         return this.getHoursAndMinutes(min)
       },
+      // SERIAL Total Time
       serialTime () {
         let min = this.serialSeason * this.serialSeries * this.serialSeriesMinutes
         return this.getHoursAndMinutes(min)
+      },
+
+      // Show loading status
+      loading () {
+        return this.$store.getters.loading
       }
     }
   }
@@ -277,27 +301,33 @@
       margin-bottom 0
       &:last-child
         margin-right 0
+
   //
   // Total time
   //
   .total-time
     margin-bottom 20px
+
   .time-title
     display block
     margin-bottom 6px
+
   .time-input
     max-width 80px
     margin-right 10px
+
   //
   // Tags
   //
   .tag-list
     margin-bottom 20px
+
   .ui-tag__wrapper
     margin-right 18px
     margin-bottom 10px
     &:last-child
       margin-right 0
+
   .ui-tag
     &.used
       background-color: #444ce0
@@ -309,16 +339,19 @@
     .button-close
       &.active
         transform: rotate(45deg)
+
   // Tag Menu Show
   .tag-list--menu
     display flex
     justify-content space-between
     align-items center
+
   // New Tag Input
   .tag-add--input
     margin-bottom 0
     margin-right 10px
     height 42px
+
   //
   // Total Time
   //
@@ -331,9 +364,11 @@
       max-width 80px
       margin-bottom 28px
       margin-right 10px
+
   .button-list
     display flex
     justify-content flex-end
+
   //
   // Validate
   //
@@ -346,6 +381,7 @@
     &.errorInput
       .error
         display block
+
   input
     &.error
       border-color #fc5c65
