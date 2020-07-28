@@ -3,7 +3,7 @@
     section
       .container
         .task-list__header
-          h1.ui-title-1 Tasks
+          h1.ui-title-1 Library
 
           // Filter
           .buttons-list
@@ -28,7 +28,9 @@
               .ui-card.ui-card--shadow
                 .task-item__info
                   .task-item__main-info
-                    span.ui-label.ui-label--light {{ task.whatWatch }}
+                    span.ui-label(
+                      :class="[{ 'ui-label--primary': !task.completed }, { 'ui-label--light': task.completed  }]"
+                    ) {{ task.whatWatch }}
                     span Total Time: {{ task.time }}
                   span.button-close(
                     @click="deleteTask(task.id)"
@@ -37,8 +39,9 @@
                   .task-item__header
                     .ui-checkbox-wrapper
                       input.ui-checkbox(
-                        type='checkbox'
+                        type="checkbox"
                         v-model="task.completed"
+                        @click="taskCompleted(task.id, task.completed)"
                       )
                     span.ui-title-2 {{ task.title }}
                   .task-item__body
@@ -59,14 +62,22 @@
                         .button.button--round.button-default(
                           @click="taskEdit(task.id, task.title, task.description)"
                         ) Edit
-                        .button.button--round.button-primary Done
+                        .button.button--round(
+                          @click="taskCompleted(task.id, task.completed)"
+                          :class="[{ 'button-primary': !task.completed }, { 'button-light': task.completed  }]"
+                        )
+                          span(v-if="task.completed") Return
+                          span(v-else) Done
 
     // Edit popup
     .ui-messageBox__wrapper(
-      v-if="editing"
-      :class="{active: editing}"
+      v-if="editingPopup"
+      @click="cancelTaskEdit"
+      :class="{active: editingPopup}"
     )
-      .ui-messageBox.fadeInDown
+      .ui-messageBox.fadeInDown(
+        @click.stop=""
+      )
         .ui-messageBox__header
           span.messageBox-title {{ titleEditing }}
           span.button-close(@click="cancelTaskEdit")
@@ -75,11 +86,13 @@
           input(
             type="text"
             v-model='titleEditing'
+            @keyup.esc="cancelTaskEdit"
           )
           p Description
           textarea(
             type="text"
             v-model='desrEditing'
+            @keyup.esc="cancelTaskEdit"
           )
         .ui-messageBox__footer
           .button.button-light(@click="cancelTaskEdit") Cancel
@@ -92,16 +105,30 @@
     data () {
       return {
         filter: 'active',
-        editing: false,
+        // Editing
+        editingPopup: false,
         titleEditing: '',
         desrEditing: '',
         taskId: null
       }
     },
     methods: {
+      // Completed
+      taskCompleted (id, completed) {
+        completed ? completed = false : completed = true
+
+        this.$store.dispatch('completedTask', {
+          id,
+          completed
+        })
+          .then(() => {
+            console.log(completed)
+            // this.$store.dispatch('loadTasks')
+          })
+      },
       // Edit
       taskEdit (id, title, description) {
-        this.editing = !this.editing
+        this.editingPopup = !this.editingPopup
         // console.log({id, title, description})
         this.taskId = id
         this.titleEditing = title
@@ -110,7 +137,7 @@
 
       // Cancel button (POPUP)
       cancelTaskEdit () {
-        this.editing = !this.editing
+        this.editingPopup = !this.editingPopup
 
         // Reset
         this.taskId = null
@@ -126,7 +153,7 @@
           title: this.titleEditing,
           description: this.desrEditing
         })
-        this.editing = !this.editing
+        this.editingPopup = !this.editingPopup
       },
 
       // Delete button
@@ -149,11 +176,6 @@
           return this.$store.getters.tasks
         }
         return this.filter === 'active'
-      },
-
-      // Show loading status
-      loading () {
-        return this.$store.getters.loading
       }
     }
   }

@@ -50,9 +50,12 @@ new Vue({
       if (user) {
         // Check Logged
         this.$store.dispatch('loggedUser', user)
+        // Loading All Tasks
+        this.$store.dispatch('loadTasks')
+        // Loading All Tags
+        this.$store.dispatch('loadTags')
+        console.log(this.$store.getters.message.title)
       }
-      // Loading All Tasks
-      this.$store.dispatch('loadTasks')
     })
   }
 })

@@ -19,6 +19,12 @@ export default {
       })
       task.title = title
       task.description = description
+    },
+    completedTask (state, {id, completed}) {
+      const task = state.tasks.find(t => {
+        return t.id === id
+      })
+      task.completed = completed
     }
   },
   actions: {
@@ -27,6 +33,7 @@ export default {
       commit('clearError')
       commit('setLoading', true)
       try {
+        // Get task
         const task = await firebase.database().ref('tasks').once('value')
         // Get value
         const tasks = task.val()
@@ -64,7 +71,7 @@ export default {
       commit('clearError')
       commit('setLoading', true)
       try {
-        // Use helped class
+        // Used helped class
         const newTask = new Task(
           payload.title,
           payload.description,
@@ -75,7 +82,9 @@ export default {
           payload.editing,
           getters.user.id
         )
+        // Push newTask
         const task = await firebase.database().ref('tasks').push(newTask)
+
         // Send mutation
         commit('newTask', {
           ...newTask,
@@ -109,7 +118,24 @@ export default {
         throw error
       }
     },
-    // Edit Task (button)
+    // Change Completed
+    async completedTask ({commit}, {id, completed}) {
+      commit('clearError')
+      commit('setLoading', true)
+      try {
+        // Update title & descr
+        await firebase.database().ref('tasks').child(id).update({completed})
+        // Send mutation
+        commit('completedTask', {id, completed})
+
+        commit('setLoading', false)
+      } catch (error) {
+        commit('setLoading', false)
+        commit('setError', error.message)
+        throw error
+      }
+    },
+    // Delete Task (button)
     async deleteTask ({commit}, id) {
       commit('clearError')
       commit('setLoading', true)
@@ -125,7 +151,7 @@ export default {
     }
   },
   getters: {
-    // Get user All Tasks
+    // Get All user Tasks
     tasks (state, getters) {
       return state.tasks.filter(task => {
         return task.user === getters.user.id

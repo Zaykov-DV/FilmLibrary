@@ -120,23 +120,21 @@
             )
               .ui-tag__wrapper(
                 v-for="tag in tags"
-                :key="tag.title"
+                :key="tag.id"
               )
                 .ui-tag(
                   @click="addTagUsed(tag)"
                   :class="{used: tag.use}"
                 )
                   span.tag-title {{ tag.title }}
-                  span.button-close
+                  span.button-close(@click="deleteTag(tag.id)")
 
           // SUBMIT
           .button-list
             button.button.button--round.button-primary(
               type="submit"
               :disabled="submitStatus === 'PENDING'"
-            )
-              span(v-if="loading") Loading...
-              span(v-else) Send
+            ) Send
 
 </template>
 
@@ -178,15 +176,24 @@
         if (this.tagTitle === '') {
           return
         }
+
         const tag = {
           title: this.tagTitle,
           use: false
         }
         this.$store.dispatch('newTag', tag)
+
         // Reset
         this.tagTitle = ''
       },
-
+      // Delete Tag
+      deleteTag (id) {
+        this.$store.dispatch('deleteTag', id)
+          .then(() => {
+            console.log('tag deleted')
+            this.$store.dispatch('loadTags')
+          })
+      },
       // Add Used Tag
       addTagUsed (tag) {
         tag.use = !tag.use
@@ -274,11 +281,6 @@
       serialTime () {
         let min = this.serialSeason * this.serialSeries * this.serialSeriesMinutes
         return this.getHoursAndMinutes(min)
-      },
-
-      // Show loading status
-      loading () {
-        return this.$store.getters.loading
       }
     }
   }

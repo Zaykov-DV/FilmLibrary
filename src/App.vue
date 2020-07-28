@@ -6,7 +6,7 @@
           .navbar-content
             router-link.header-logo(
               to="/"
-            ) Film library
+            ) Time Library
             .button-burger(
               @click="menuShow = !menuShow"
               :class="{ active: menuShow }"
@@ -19,7 +19,7 @@
             )
               ul.navbar-list
                 li.navbar-item(
-                  v-for="link in linkMenu"
+                  v-for="link in links"
                   :key="link.title"
                   @click="menuShow = false"
                 )
@@ -32,7 +32,18 @@
                 )
                   span.navbar-link Logout
 
-    router-view
+    router-view(:class="{blur: loading}")
+
+    .preloader__wrapper(v-if="loading")
+      .preloader1
+      .preloader2
+      .preloader3
+
+    .ui-message(
+      v-if="messageShow"
+      :class="[{ 'ui-message--success': messageContext === 'success' }, { 'ui-message--danger': messageContext === 'error' }]")
+      span.message-title {{ messageTitle }}
+
 </template>
 
 <script>
@@ -52,17 +63,30 @@
       checkUser () {
         return this.$store.getters.checkUser
       },
-      linkMenu () {
+      links () {
         if (this.checkUser) {
           return [
             {title: 'Home', url: '/'},
-            {title: 'Tasks', url: '/task'}
+            {title: 'Library', url: '/library'}
           ]
         }
         return [
           {title: 'Login', url: '/login'},
           {title: 'Registration', url: '/registration'}
         ]
+      },
+      // Show loading status
+      loading () {
+        return this.$store.getters.loading
+      },
+      messageShow () {
+        return this.$store.getters.message.show
+      },
+      messageTitle () {
+        return this.$store.getters.message.title
+      },
+      messageContext () {
+        return this.$store.getters.message.context
       }
     }
   }

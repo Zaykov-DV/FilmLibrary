@@ -133,10 +133,8 @@
               .buttons-list
                 button.button.button-primary(
                   type="submit"
-                  :disabled="submitStatus === 'PENDING'"
-                )
-                  span(v-if="loading") Loading ...
-                  span(v-else) Login
+                  :class="{ 'button--disable': $v.$invalid }"
+                ) Login
 
               .buttons-list.buttons-list--info
                 p(v-if="submitStatus === 'OK'") Thanks for your submission!
@@ -188,19 +186,20 @@
           }
           this.$store.dispatch('loginUser', user)
             .then(() => {
-              this.submitStatus = 'OK'
+              this.$store.dispatch('loginUser', user)
+              // Message
+              let message = {
+                context: 'success',
+                title: 'You are logged!'
+              }
+              this.$store.dispatch('getMessage', message)
+              // this.submitStatus = 'OK'
               this.$router.push('/')
             })
             .catch(err => {
               this.submitStatus = err.message
             })
         }
-      }
-    },
-    computed: {
-      // Show loading status
-      loading () {
-        return this.$store.getters.loading
       }
     }
   }
@@ -209,6 +208,7 @@
 <style lang="stylus" scoped>
   .auth
     display flex
+    justify-content space-between
     flex-wrap wrap
   .auth__banner,
   .auth__form
@@ -218,6 +218,9 @@
       margin-bottom 30px
       &:last-child
         margin-bottom 0
+
+  .auth__form
+    max-width 400px
 
   .form-item
     .error

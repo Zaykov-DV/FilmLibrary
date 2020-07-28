@@ -143,9 +143,8 @@
               .buttons-list
                 button.button.button-primary(
                   type="submit"
-                )
-                  span(v-if="loading") Loading...
-                  span(v-else) Registration
+                  :class="{ 'button--disable': $v.$invalid }"
+                ) Registration
 
               .buttons-list.buttons-list--info
                 p.typo__p(v-if="submitStatus === 'OK'") Thanks for your submission!
@@ -201,8 +200,12 @@
           }
           this.$store.dispatch('registerUser', user)
             .then(() => {
-              console.log('REGISTER!')
-              this.submitStatus = 'OK'
+              let message = {
+                context: 'success',
+                title: 'You are register!'
+              }
+              this.$store.dispatch('getMessage', message)
+              // this.submitStatus = 'OK'
               this.$router.push('/')
             })
             .catch(err => {
@@ -210,19 +213,15 @@
             })
         }
       }
-    },
-    computed: {
-      // Show loading status
-      loading () {
-        return this.$store.getters.loading
-      }
     }
   }
 </script>
 
 <style lang="stylus" scoped>
+  // TODO auth stylus
   .auth
     display flex
+    justify-content space-between
     flex-wrap wrap
   .auth__banner,
   .auth__form
@@ -232,6 +231,9 @@
       margin-bottom 30px
       &:last-child
         margin-bottom 0
+
+  .auth__form
+    max-width 400px
 
   .form-item
     .error
